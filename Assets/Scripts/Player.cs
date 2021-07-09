@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 using static UnityEngine.Camera;
 using static UnityEngine.InputSystem.InputAction;
 
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour, IHealth
 {
     [SerializeField] private Camera cam;
     [SerializeField] private LaserPooler laserPooler;
@@ -16,6 +16,15 @@ public class Player : MonoBehaviour
     public float decceleration;
     public float speed {get; private set;}
 
+    public float maxHealth {get => _maxHP; set{}}
+    [SerializeField] private float _maxHP;
+    public float currentHealth {get => _hp; set{_hp = value;}}
+    float _hp;
+    public bool isDead {get => _isDead; set{}}
+    bool _isDead;
+    public bool isDying {get => _isDying; set{}}
+    bool _isDying;
+
     bool primaryFire;
     public float primaryFireSpeed;
     float nextPrimaryFireTime;
@@ -23,11 +32,12 @@ public class Player : MonoBehaviour
     int lastFirePointIndex;
 
     bool secondaryFire;
+    private void Awake() {
+        currentHealth = maxHealth;
+    }
 
     private void Update()
     {
-        // LookAtMouse();
-
         if(primaryFire && Time.timeSinceLevelLoad >= nextPrimaryFireTime)
             PrimaryFire();
     }
@@ -116,11 +126,27 @@ public class Player : MonoBehaviour
         
         LaserProjectile proj = laserPooler.pool.Get();
         proj.gameObject.transform.SetPositionAndRotation(firePoint.position, transform.rotation);
-        proj.Fire();
+        proj.Fire(transform);
     }
 
     public void SecondaryFireInput(CallbackContext context)
     {
         
+    }
+
+    public void TakeDamage(float amount)
+    {
+        if(isDying || isDead)
+            return;
+        
+        currentHealth = Mathf.Clamp(currentHealth - Mathf.Abs(amount), 0, maxHealth);
+
+        if(currentHealth == 0)
+            Die();
+    }
+
+    public void Die()
+    {
+        isDead = true;
     }
 }

@@ -1,51 +1,18 @@
 using UnityEngine;
-using UnityEngine.Pool;
 
-public class LaserPooler : MonoBehaviour
+public class LaserPooler : Pooler<LaserProjectile>
 {
-    [SerializeField] private LaserProjectile laserPrefab;
-
-    public bool collectionChecks = true;
-    public int maxPoolSize = 10;
-    IObjectPool<LaserProjectile> _pool;
-
-    public IObjectPool<LaserProjectile> pool {get{
-        if(_pool == null)
-            _pool = new ObjectPool<LaserProjectile>(CreatePooledItem, OnTakeFromPool, OnReturnedToPool, OnDestroyPoolObject, collectionChecks, 10, maxPoolSize);
-        return _pool;
-    } set{}}
-
-    LaserProjectile CreatePooledItem()
+    public class LaserReturn : ReturnToPool<LaserProjectile> {}
+    protected override void OnReturnToPool(LaserProjectile item)
     {
-        LaserProjectile newProj = Instantiate(laserPrefab);
-        newProj.gameObject.SetActive(false);
-
-        ReturnLaserToPool returnToPool = newProj.gameObject.AddComponent<ReturnLaserToPool>();
-        returnToPool.pool = pool;
-
-        return newProj;
+        item.body.velocity = Vector2.zero;
+        base.OnReturnToPool(item);
     }
-
-    void OnTakeFromPool(LaserProjectile proj) => proj.gameObject.SetActive(true);
-
-    void OnReturnedToPool(LaserProjectile proj)
+    protected override LaserProjectile CreatePooledItem()
     {
-        proj.transform.position = Vector3.zero;
-        proj.body.velocity = Vector2.zero;
-        proj.gameObject.SetActive(false);
+        LaserProjectile proj = base.CreatePooledItem();
+        LaserReturn laserReturn = proj.gameObject.AddComponent<LaserReturn>();
+        laserReturn.pool = pool;
+        return proj;
     }
-
-    void OnDestroyPoolObject(LaserProjectile proj) => Destroy(proj.gameObject);
-}
-
-public class ReturnLaserToPool : MonoBehaviour
-{
-    LaserProjectile proj;
-    public IObjectPool<LaserProjectile> pool;
-    private void Start() {
-        proj = GetComponent<LaserProjectile>();
-        proj.onCollision += OnCollision;
-    }
-
-    void OnCollision() => pool.Release(proj);
 }

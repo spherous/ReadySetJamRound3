@@ -1,24 +1,43 @@
 Player Input
     X WASD/Arrow Key - move 
     X Rotate to face mouse pointer
-    click to primary fire
+    X click to primary fire
     right click to secondary fire
     space bar for ultimate
     Maybe some boost key to move faster??
 
-Projectiles (lots of these, so performance matters slightly)
+X Projectiles
 Player Death
-    - Health
+    X - Health
+    - Health bar
 X Screen wrapping
+    - cost
 Ammo
+    - Ammo bar
 Fuel
+    - Fuel bar
 
 Enemies
-Rocks
-    - stages of destruction (large rocks break into smaller rocks)
+    - drop ammo and fuel
+X Rocks
+
+Powerups
+    Twin shot
+    Attack speed
+    Attack damage
+
+Highscore
 
 Art
     Player
     Enemies
     Astroids/Rocks
     Star field
+    Projectiles
+    Rocks
+        - on destory particles
+
+Audio
+    Rocks on destory
+    lasers
+    Death

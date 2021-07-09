@@ -2,10 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LaserProjectile : MonoBehaviour, IProjectile
+public class LaserProjectile : MonoBehaviour, IProjectile, IPoolable
 {
-    public delegate void OnCollision();
-    public OnCollision onCollision;
     private float dieAtTime;
     public float lifetime {get => _lifetime; set{_lifetime = value;}}
     [SerializeField] private float _lifetime;
@@ -14,8 +12,14 @@ public class LaserProjectile : MonoBehaviour, IProjectile
     [SerializeField] private float _speed;
 
     public Rigidbody2D body {get => _body; set{}}
+
+    public bool inPool {get => _inPool; set{_inPool = value;}}
+    bool _inPool = false;
+
     [SerializeField] private Rigidbody2D _body;
 
+    public event OnReturnToPool onReturnToPool;
+    private Transform owner;
 
     private void Update() {
         if(Time.timeSinceLevelLoad >= dieAtTime)
@@ -26,12 +30,24 @@ public class LaserProjectile : MonoBehaviour, IProjectile
 
     public void Collide()
     {
-        onCollision?.Invoke();
+        onReturnToPool?.Invoke();
     }
 
-    public void Fire()
+    public void Fire(Transform owner)
     {
+        this.owner = owner;
         dieAtTime = Time.timeSinceLevelLoad + lifetime;
         body.velocity = transform.up * speed;
+    }
+
+    private void OnTriggerEnter2D(Collider2D other) {
+        if(other == null || other.transform == owner)
+            return;
+
+        if(other.TryGetComponent<IHealth>(out IHealth otherHealth))
+        {
+            otherHealth.TakeDamage(1);
+            Collide();
+        }
     }
 }
