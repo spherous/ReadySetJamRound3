@@ -18,18 +18,7 @@ public class RockSpawner : MonoBehaviour
         Rock rock = pooler.pool.Get();
         rock.Init(UnityEngine.Random.Range(2, 5), this);
 
-        //  Choose a random position off the edge of the screen
-        int offEdge = UnityEngine.Random.Range(0, 2);
-        int posOrNeg = UnityEngine.Random.Range(0, 2);
-        float offset = UnityEngine.Random.Range(1, 10);
-
-        (float x, float y) loc = offEdge switch{
-            // off height
-            0 => (UnityEngine.Random.Range(0f, Screen.width), posOrNeg == 0 ? Screen.height + offset : 0 - offset),
-            // off width
-            1 => (posOrNeg == 0 ? Screen.width + offset : 0 - offset, UnityEngine.Random.Range(0f, Screen.height)),
-            _ => (0,0)
-        };
+        (float x, float y) loc = Extensions.GetRandomOffScreenLocation();
         rock.transform.position = cam.ScreenToWorldPoint(new Vector3(loc.x, loc.y, 10), MonoOrStereoscopicEye.Mono);
 
         // Choose a target somewhere on screen, send rock in direction of target

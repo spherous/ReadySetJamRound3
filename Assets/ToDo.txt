@@ -4,29 +4,41 @@ Player Input
     X click to primary fire
     right click to secondary fire
     space bar for ultimate
-    Maybe some boost key to move faster??
 
 X Projectiles
-Player Death
+X Player Death
     X - Health
-    - Health bar
+    X - Health bar
 X Screen wrapping
     - cost
 Ammo
     - Ammo bar
+    - prevent shooting when out of ammo
 Fuel
     - Fuel bar
+    - prevent moving when out of fuel
 
-Enemies
-    - drop ammo and fuel
+X Enemies
+    X - Health
+    X - Chase Player
+    X - attack
+        X - don't attack other enemies
+    - drop ammo and fuel on death
+    - add random inaccuracy
+    - Improve AI
+        - Try to dodge rocks if possible
+        - Try to destroy rocks in front of them/allies
+        - facing player shouldn't be instant
+        - add acceleration and decceleration
 X Rocks
 
 Powerups
     Twin shot
     Attack speed
     Attack damage
+    Move speed boost
 
-Highscore
+X Highscore
 
 Art
     Player
@@ -40,4 +52,4 @@ Art
 Audio
     Rocks on destory
     lasers
-    Death
+    Death for player and enemies

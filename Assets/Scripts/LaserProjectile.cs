@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class LaserProjectile : MonoBehaviour, IProjectile, IPoolable
 {
+    [SerializeField] private SpriteRenderer spriteRenderer;
+    [SerializeField] private TrailRenderer trail;
+    public Color playerColor;
+    public Color enemyColor;
     private float dieAtTime;
     public float lifetime {get => _lifetime; set{_lifetime = value;}}
     [SerializeField] private float _lifetime;
@@ -30,14 +34,20 @@ public class LaserProjectile : MonoBehaviour, IProjectile, IPoolable
 
     public void Collide()
     {
+        trail.Clear();
         onReturnToPool?.Invoke();
     }
 
-    public void Fire(Transform owner)
+    public void Fire(Transform owner, bool isPlayer = false)
     {
+        trail.Clear();
         this.owner = owner;
         dieAtTime = Time.timeSinceLevelLoad + lifetime;
         body.velocity = transform.up * speed;
+        Color color = isPlayer ? playerColor : enemyColor;
+        spriteRenderer.color = color;
+        trail.startColor = color;
+        trail.endColor = color;
     }
 
     private void OnTriggerEnter2D(Collider2D other) {
@@ -46,7 +56,7 @@ public class LaserProjectile : MonoBehaviour, IProjectile, IPoolable
 
         if(other.TryGetComponent<IHealth>(out IHealth otherHealth))
         {
-            otherHealth.TakeDamage(1);
+            otherHealth.TakeDamage(1, owner);
             Collide();
         }
     }

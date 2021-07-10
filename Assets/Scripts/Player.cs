@@ -8,6 +8,7 @@ public class Player : MonoBehaviour, IHealth
 {
     [SerializeField] private Camera cam;
     [SerializeField] private LaserPooler laserPooler;
+    [SerializeField] private GameObject endGamePanel;
     // [SerializeField] private GameObject primaryProjectilePrefab;
     Vector2 movementInput = new Vector2();
     Vector2 lastMovementDir = new Vector2();
@@ -32,9 +33,10 @@ public class Player : MonoBehaviour, IHealth
     int lastFirePointIndex;
 
     bool secondaryFire;
-    private void Awake() {
-        currentHealth = maxHealth;
-    }
+
+    public event OnHealthChanged onHealthChanged;
+
+    private void Start() => currentHealth = maxHealth;
 
     private void Update()
     {
@@ -44,6 +46,9 @@ public class Player : MonoBehaviour, IHealth
 
     private void FixedUpdate()
     {
+        if(isDead || isDying)
+            return;
+
         Move();
         ScreenWrap();
         LookAtMouse();
@@ -103,19 +108,28 @@ public class Player : MonoBehaviour, IHealth
 
     public void Horizontal(CallbackContext context)
     {
+        if(isDead || isDying)
+            return;
+
         movementInput = new Vector2(context.ReadValue<float>(), movementInput.y);
     }
     public void Vertical(CallbackContext context)
     {
+        if(isDead || isDying)
+            return;
+
         movementInput = new Vector2(movementInput.x, context.ReadValue<float>());
     }
 
     public void PrimaryFireInput(CallbackContext context)
     {
-        if(context.started)
-            primaryFire = true;
-        else if(context.canceled)
+        if(isDead || isDying)
+            return;
+
+        if(context.canceled)
             primaryFire = false;
+        else if(context.started)
+            primaryFire = true;
     }
     private void PrimaryFire()
     {
@@ -126,27 +140,42 @@ public class Player : MonoBehaviour, IHealth
         
         LaserProjectile proj = laserPooler.pool.Get();
         proj.gameObject.transform.SetPositionAndRotation(firePoint.position, transform.rotation);
-        proj.Fire(transform);
+        proj.Fire(transform, true);
     }
 
     public void SecondaryFireInput(CallbackContext context)
     {
-        
+        if(isDead || isDying)
+            return;
     }
 
-    public void TakeDamage(float amount)
+    public void TakeDamage(float amount, Transform damagedBy)
     {
         if(isDying || isDead)
             return;
-        
+
+        float oldHP = currentHealth;
         currentHealth = Mathf.Clamp(currentHealth - Mathf.Abs(amount), 0, maxHealth);
+
+        if(oldHP != currentHealth)
+            onHealthChanged?.Invoke(currentHealth);
 
         if(currentHealth == 0)
             Die();
     }
+    
+    public void HealToFull()
+    {
+        currentHealth = maxHealth;
+        onHealthChanged?.Invoke(currentHealth);
+    }
 
     public void Die()
     {
-        isDead = true;
+        if(primaryFire)
+            primaryFire = false;
+        _isDead = true;
+
+        endGamePanel.SetActive(true);
     }
 }

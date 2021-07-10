@@ -21,11 +21,18 @@ public class Rock : MonoBehaviour, IHealth, IPoolable
     bool _inPool = false;
 
     public event OnReturnToPool onReturnToPool;
+    public event OnHealthChanged onHealthChanged;
+
     private RockSpawner spawner;
 
     public float sizeMod = 1.5f;
     public float lifetime;
     float dieAtTime;
+    
+    Score score;
+    private void Awake() {
+        score = GameObject.FindObjectOfType<Score>();
+    }
 
     private void Update() {
         if(Time.timeSinceLevelLoad >= dieAtTime)
@@ -43,6 +50,7 @@ public class Rock : MonoBehaviour, IHealth, IPoolable
         float scale = size / sizeMod;
         transform.localScale = new Vector3(scale, scale, scale);
         _hp = maxHealth;
+        onHealthChanged?.Invoke(currentHealth);
         
         // This resets the ignored collisions
         col.enabled = false;
@@ -109,9 +117,12 @@ public class Rock : MonoBehaviour, IHealth, IPoolable
         onReturnToPool?.Invoke();
     }
 
-    public void TakeDamage(float amount)
+    public void TakeDamage(float amount, Transform damagedBy)
     {
+        if(damagedBy.gameObject.name == "Player")
+            score.Add(1);
         StartCoroutine(DieAtEndOfFrame());
+        onHealthChanged?.Invoke(0);
     }
 
     private void OnCollisionEnter2D(Collision2D other) {
@@ -120,7 +131,11 @@ public class Rock : MonoBehaviour, IHealth, IPoolable
         
         if(other.collider.TryGetComponent<IHealth>(out IHealth otherHealth))
         {
-            otherHealth.TakeDamage(size);
+            // Rocks running into the player still count towards the score, even though they deal damage
+            if(other.collider.gameObject.name == "Player")
+                score.Add(1);
+
+            otherHealth.TakeDamage(size, transform);
             StartCoroutine(DieAtEndOfFrame());
         }
     }
@@ -133,5 +148,11 @@ public class Rock : MonoBehaviour, IHealth, IPoolable
         isDying = true;
         yield return new WaitForEndOfFrame();
         Die();
+    }
+
+    public void HealToFull()
+    {
+        currentHealth = maxHealth;
+        onHealthChanged?.Invoke(currentHealth);
     }
 }
