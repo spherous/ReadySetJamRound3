@@ -24,6 +24,7 @@ public class LaserProjectile : MonoBehaviour, IProjectile, IPoolable
 
     public event OnReturnToPool onReturnToPool;
     private Transform owner;
+    float damage;
 
     private void Update() {
         if(Time.timeSinceLevelLoad >= dieAtTime)
@@ -38,10 +39,11 @@ public class LaserProjectile : MonoBehaviour, IProjectile, IPoolable
         onReturnToPool?.Invoke();
     }
 
-    public void Fire(Transform owner, bool isPlayer = false)
+    public void Fire(Transform owner, float damage, bool isPlayer = false)
     {
         trail.Clear();
         this.owner = owner;
+        this.damage = damage;
         dieAtTime = Time.timeSinceLevelLoad + lifetime;
         body.velocity = transform.up * speed;
         Color color = isPlayer ? playerColor : enemyColor;
@@ -50,13 +52,14 @@ public class LaserProjectile : MonoBehaviour, IProjectile, IPoolable
         trail.endColor = color;
     }
 
-    private void OnTriggerEnter2D(Collider2D other) {
+    private void OnTriggerEnter2D(Collider2D other)
+    {
         if(other == null || other.transform == owner)
             return;
 
         if(other.TryGetComponent<IHealth>(out IHealth otherHealth))
         {
-            otherHealth.TakeDamage(1, owner);
+            otherHealth.TakeDamage(damage, owner);
             Collide();
         }
     }

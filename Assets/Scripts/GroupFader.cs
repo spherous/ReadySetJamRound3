@@ -1,0 +1,65 @@
+﻿using ExtensionUtils;
+using Sirenix.OdinInspector;
+using UnityEngine;
+
+public class GroupFader : MonoBehaviour
+{
+    [SerializeField] private CanvasGroup _group;
+    public CanvasGroup group => _group;
+    [SerializeField] private float fadeDuration;
+    private float? startFadeTime;
+    private TriSign sign = TriSign.Zero;
+    private bool deactivate = false;
+
+    public bool visible => !(_group.alpha < 1);
+    public bool visibleOnStart = true;
+
+    private void Awake()
+    {
+        if(_group == null)
+            _group = gameObject.GetComponent<CanvasGroup>();
+
+        _group.alpha = visibleOnStart ? 1 : 0;
+    }
+
+    private void Update() {
+        if(sign != TriSign.Zero && startFadeTime != null)
+            FadeStep();
+    }
+
+    private void FadeStep()
+    {
+        _group.alpha = Mathf.Clamp01(_group.alpha + (sbyte)sign * (Time.deltaTime / fadeDuration));
+        
+        if(Time.timeSinceLevelLoad >= startFadeTime.Value + fadeDuration)
+        {
+            sign = TriSign.Zero;
+            startFadeTime = null;
+            if(deactivate)
+            {
+                deactivate = false;
+                gameObject.SetActive(false);
+            }
+        }
+    }
+
+    [Button]
+    public void FadeOut(bool deactivateOnComplete = false)
+    {
+        Debug.Log($"Closing {gameObject.name}.");
+        group.alpha = 1;
+        sign = TriSign.Negative;
+        startFadeTime = Time.timeSinceLevelLoad;
+        if(deactivateOnComplete)
+            deactivate = true;
+    }
+
+    [Button]
+    public void FadeIn()
+    {
+        Debug.Log($"Opening {gameObject.name}.");
+        group.alpha = 0;
+        sign = TriSign.Positive;
+        startFadeTime = Time.timeSinceLevelLoad;
+    }
+}

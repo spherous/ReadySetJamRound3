@@ -2,54 +2,105 @@ Player Input
     X WASD/Arrow Key - move 
     X Rotate to face mouse pointer
     X click to primary fire
-    right click to secondary fire
-    space bar for ultimate
+    X right click to secondary fire
+    X space bar to activate most recently picked up powerup
 
 X Projectiles
 X Player Death
     X - Health
     X - Health bar
 X Screen wrapping
-    - cost
-Ammo
-    - Ammo bar
-    - prevent shooting when out of ammo
-Fuel
-    - Fuel bar
-    - prevent moving when out of fuel
+    X - cost
+X Ammo
+    X - Ammo bar
+    X - prevent shooting when out of ammo
+    X - Rocks destorys battery on collision?
+X Fuel
+    X - Fuel bar
+    X - prevent moving when out of fuel
+    X - Rock destroys fuel on collision??
 
 X Enemies
     X - Health
     X - Chase Player
     X - attack
         X - don't attack other enemies
-    - drop ammo and fuel on death
-    - add random inaccuracy
+    X - drop ammo and fuel on death
+    X - add random inaccuracy
     - Improve AI
         - Try to dodge rocks if possible
-        - Try to destroy rocks in front of them/allies
-        - facing player shouldn't be instant
+        X - Try to destroy rocks in front of them/allies
+        X - facing player shouldn't be instant
         - add acceleration and decceleration
 X Rocks
 
 Powerups
-    Twin shot
-    Attack speed
-    Attack damage
-    Move speed boost
+    X Twin shot/Quad shot
+    X Attack speed
+    X Move speed
+    X Fuel/energy pick up radius
+    X laser damage
+    Fuel Efficiency - change color of engine plume
+    Rockets
+
+Movespeed boost should increase the size of engine plume
+Change color of lasers while affected by attack damage boost
+pickup radius indicator while buff active
 
 X Highscore
 
 Art
-    Player
-    Enemies
-    Astroids/Rocks
-    Star field
-    Projectiles
-    Rocks
-        - on destory particles
+    X Player
+        X Engine particles
+    X Enemies
+        X on death explosion
+    X Star field
+    X Projectiles
+    X Astroids/Rocks
+        X  on destory particles
+    X Bomb
+        X explosion
+    X On damaged FX
+        X - hp damage
+        X - shield damage
+    X Screen wrap indicator
+    X Fuel
+    X Battery
+    X Bomb explosion radius indicator
+    Screen wrap FX
+    Turning air jets (RCS Thrusters)
+    Energy + fuel icons for the bars
 
 Audio
-    Rocks on destory
-    lasers
-    Death for player and enemies
+    X Volume controls
+    X Music
+    X lasers
+    X Explosion
+    X pick up battery
+    X pick up fuel
+    X Rocks destroying
+    X Screen wrap
+    X Picking up powerup
+    X activating powerup
+    X losing powerup
+    launch bomb
+
+Design
+    X Lasers are 1 energy
+    X 1 Enemy should provide 15 energy
+    X Bombs should cost ~3 enemies worth of energy (45)
+    X Screen wrapping should cost 1/2 enemy worth of energy (7.5)
+    X Shield protects hp by costing energy to prevent damage.
+        - hp has no regen, while energy can be acquired from killing enemies
+    X Flash energy/fuel bar background yellow/red when low/empty
+    X Pool enemies into a spot off screen rather than center of screen, phantoms are showing up
+
+UI
+    +1 when gaining points
+
+Stretch
+    Lighting
+    
+
+Theme: Everything has a cost
+Restriction: One screen

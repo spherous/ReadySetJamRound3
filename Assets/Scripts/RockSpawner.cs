@@ -1,10 +1,11 @@
+using System.Collections.Generic;
 using UnityEngine;
 using static UnityEngine.Camera;
 
 public class RockSpawner : MonoBehaviour
 {
     [SerializeField] private Camera cam;
-    public RockPooler pooler;
+    public List<RockPooler> poolers = new List<RockPooler>();
     public float rockSpawnDelay;
     private float spawnAtTime;
 
@@ -15,8 +16,9 @@ public class RockSpawner : MonoBehaviour
 
     public void SpawnRock()
     {
-        Rock rock = pooler.pool.Get();
-        rock.Init(UnityEngine.Random.Range(2, 5), this);
+        int startRockSize = UnityEngine.Random.Range(2, 5);
+        Rock rock = poolers[startRockSize].pool.Get();
+        rock.Init(startRockSize, this);
 
         (float x, float y) loc = Extensions.GetRandomOffScreenLocation();
         rock.transform.position = cam.ScreenToWorldPoint(new Vector3(loc.x, loc.y, 10), MonoOrStereoscopicEye.Mono);
@@ -28,8 +30,13 @@ public class RockSpawner : MonoBehaviour
 
         // Randomize rotation
         rock.transform.rotation = Quaternion.Euler(0, 0, UnityEngine.Random.Range(-180f, 180f));
-        rock.body.angularVelocity = UnityEngine.Random.Range(-180f, 180f);
+        rock.body.angularVelocity = UnityEngine.Random.Range(-120f, 120f);
 
         spawnAtTime = Time.timeSinceLevelLoad + rockSpawnDelay;
+    }
+
+    public void IncDifficulty()
+    {
+        rockSpawnDelay *= 0.995f;
     }
 }

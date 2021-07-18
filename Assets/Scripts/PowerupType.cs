@@ -1,0 +1,1 @@
+public enum PowerupType {None = 0, TwinShot = 1, AttackSpeed = 2, Movespeed = 3, PickupRadius = 4, AttackDamage = 5}

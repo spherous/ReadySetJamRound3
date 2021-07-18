@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.Camera;
 
 public class Rock : MonoBehaviour, IHealth, IPoolable
 {
+    Camera cam;
     public Rigidbody2D body {get => _body; set{}}
     [SerializeField] private Rigidbody2D _body;
     public Collider2D col {get => _col; set{}}
@@ -24,20 +26,28 @@ public class Rock : MonoBehaviour, IHealth, IPoolable
     public event OnHealthChanged onHealthChanged;
 
     private RockSpawner spawner;
+    private ParticleSystemPooler dustPooler;
 
     public float sizeMod = 1.5f;
     public float lifetime;
     float dieAtTime;
     
     Score score;
+
+    RockPlayer audioPlayer;
     private void Awake() {
+        cam = Camera.main;
         score = GameObject.FindObjectOfType<Score>();
+        audioPlayer = GameObject.FindObjectOfType<RockPlayer>();
     }
 
     private void Update() {
-        if(Time.timeSinceLevelLoad >= dieAtTime)
+        Vector3 screenLoc = cam.WorldToScreenPoint(transform.position, MonoOrStereoscopicEye.Mono);
+        if(Time.timeSinceLevelLoad >= dieAtTime && !screenLoc.IsOnScreen())
             onReturnToPool?.Invoke();
     }
+
+    public void SetDustPooler(ParticleSystemPooler dustPooler) => this.dustPooler = dustPooler;
 
     public void Init(int size, RockSpawner spawner)
     {
@@ -48,7 +58,7 @@ public class Rock : MonoBehaviour, IHealth, IPoolable
         this.spawner = spawner;
         this.size = size;
         float scale = size / sizeMod;
-        transform.localScale = new Vector3(scale, scale, scale);
+        // transform.localScale = new Vector3(scale, scale, scale);
         _hp = maxHealth;
         onHealthChanged?.Invoke(currentHealth);
         
@@ -59,7 +69,14 @@ public class Rock : MonoBehaviour, IHealth, IPoolable
 
     public void Die()
     {
-        if(size > 1)
+        PooledParticleSystem dust = dustPooler.pool.Get();
+        dust.transform.position = transform.position;
+        dust.transform.localScale = Vector3.one * ((float)size + 1)/5f;
+        dust.Play();
+
+        audioPlayer?.Play(size);
+
+        if(size > 0)
         {
             int nextSize = size - 1;
             int amountOfNewRocks = UnityEngine.Random.Range(2, 5);
@@ -67,7 +84,8 @@ public class Rock : MonoBehaviour, IHealth, IPoolable
 
             for(int i = 0; i < amountOfNewRocks; i++)
             {
-                Rock newRock = spawner.pooler.pool.Get();
+                // Rock newRock = spawner.pooler.pool.Get();
+                Rock newRock = spawner.poolers[nextSize].pool.Get();
                 newRock.Init(nextSize, spawner);
                 newRocks.Add(newRock);
 
@@ -92,7 +110,7 @@ public class Rock : MonoBehaviour, IHealth, IPoolable
                 }
 
                 newRock.transform.SetPositionAndRotation(transform.position + posOffset, rot);
-                newRock.body.angularVelocity = UnityEngine.Random.Range(-180f, 180f);
+                newRock.body.angularVelocity = UnityEngine.Random.Range(-120f, 120f);
                 newRock.body.velocity = body.velocity + ((Vector2)(newRock.transform.position - transform.position).normalized * UnityEngine.Random.Range(0.33f, maxSpeed));
             }
 
@@ -121,7 +139,7 @@ public class Rock : MonoBehaviour, IHealth, IPoolable
     {
         if(damagedBy.gameObject.name == "Player")
             score.Add(1);
-        StartCoroutine(DieAtEndOfFrame());
+        Break();
         onHealthChanged?.Invoke(0);
     }
 
@@ -135,10 +153,12 @@ public class Rock : MonoBehaviour, IHealth, IPoolable
             if(other.collider.gameObject.name == "Player")
                 score.Add(1);
 
-            otherHealth.TakeDamage(size, transform);
-            StartCoroutine(DieAtEndOfFrame());
+            otherHealth.TakeDamage(size + 0.5f, transform);
+            Break();
         }
     }
+
+    public void Break() => StartCoroutine(DieAtEndOfFrame());
 
     IEnumerator DieAtEndOfFrame()
     {
