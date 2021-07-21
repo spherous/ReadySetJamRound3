@@ -10,11 +10,22 @@ public class PooledParticleSystem : MonoBehaviour, IPoolable
     bool isAlive = false;
     [SerializeField] private AudioSource audioSource;
     public List<AudioClip> clips = new List<AudioClip>();
+    public bool resetTransforms = false;
     private void Update() {
         if(isAlive)
         {
             if(!sparkSystem.IsAlive())
             {
+                if(resetTransforms)
+                {
+                    transform.localScale = Vector3.one;
+                    for(int i = 0; i < transform.childCount; i++)
+                    {
+                        Transform child = transform.GetChild(i);
+                        child.localScale = Vector3.one;
+                    }
+                }
+
                 isAlive = false;
                 onReturnToPool?.Invoke();
             }

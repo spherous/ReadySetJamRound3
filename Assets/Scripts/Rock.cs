@@ -34,6 +34,8 @@ public class Rock : MonoBehaviour, IHealth, IPoolable
     
     Score score;
 
+    public bool surpressSmallerRocks = false;
+
     RockPlayer audioPlayer;
     private void Awake() {
         cam = Camera.main;
@@ -65,6 +67,7 @@ public class Rock : MonoBehaviour, IHealth, IPoolable
         // This resets the ignored collisions
         col.enabled = false;
         col.enabled = true;
+        surpressSmallerRocks = false;
     }
 
     public void Die()
@@ -76,7 +79,7 @@ public class Rock : MonoBehaviour, IHealth, IPoolable
 
         audioPlayer?.Play(size);
 
-        if(size > 0)
+        if(size > 0 && !surpressSmallerRocks)
         {
             int nextSize = size - 1;
             int amountOfNewRocks = UnityEngine.Random.Range(2, 5);

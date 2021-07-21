@@ -272,6 +272,7 @@ MonoBehaviour:
   spriteRenderer: {fileID: 103754751496161562}
   trail: {fileID: 3274289280540379288}
   playerColor: {r: 0.08627451, g: 0.8313726, b: 0.13333334, a: 1}
+  juicedColor: {r: 0.08627452, g: 0.7298998, b: 0.83137256, a: 1}
   enemyColor: {r: 0.8000001, g: 0.0627451, b: 0.0627451, a: 1}
   _lifetime: 1.5
   _speed: 15

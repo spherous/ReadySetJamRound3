@@ -20,6 +20,8 @@ public class GroupFader : MonoBehaviour
             _group = gameObject.GetComponent<CanvasGroup>();
 
         _group.alpha = visibleOnStart ? 1 : 0;
+        group.blocksRaycasts = false;
+        group.interactable = false;
     }
 
     private void Update() {
@@ -29,7 +31,7 @@ public class GroupFader : MonoBehaviour
 
     private void FadeStep()
     {
-        _group.alpha = Mathf.Clamp01(_group.alpha + (sbyte)sign * (Time.deltaTime / fadeDuration));
+        _group.alpha = Mathf.Clamp01(_group.alpha + (sbyte)sign * (Time.unscaledDeltaTime / fadeDuration));
         
         if(Time.timeSinceLevelLoad >= startFadeTime.Value + fadeDuration)
         {
@@ -49,6 +51,8 @@ public class GroupFader : MonoBehaviour
         Debug.Log($"Closing {gameObject.name}.");
         group.alpha = 1;
         sign = TriSign.Negative;
+        group.blocksRaycasts = false;
+        group.interactable = false;
         startFadeTime = Time.timeSinceLevelLoad;
         if(deactivateOnComplete)
             deactivate = true;
@@ -61,5 +65,7 @@ public class GroupFader : MonoBehaviour
         group.alpha = 0;
         sign = TriSign.Positive;
         startFadeTime = Time.timeSinceLevelLoad;
+        group.blocksRaycasts = true;
+        group.interactable = true;
     }
 }

@@ -7,6 +7,7 @@ public class LaserProjectile : MonoBehaviour, IProjectile, IPoolable
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private TrailRenderer trail;
     public Color playerColor;
+    public Color juicedColor;
     public Color enemyColor;
     private float dieAtTime;
     public float lifetime {get => _lifetime; set{_lifetime = value;}}
@@ -16,21 +17,20 @@ public class LaserProjectile : MonoBehaviour, IProjectile, IPoolable
     [SerializeField] private float _speed;
 
     public Rigidbody2D body {get => _body; set{}}
+    [SerializeField] private Rigidbody2D _body;
 
     public bool inPool {get => _inPool; set{_inPool = value;}}
     bool _inPool = false;
 
-    [SerializeField] private Rigidbody2D _body;
 
     public event OnReturnToPool onReturnToPool;
     private Transform owner;
     float damage;
 
-    private void Update() {
+    private void Update()
+    {
         if(Time.timeSinceLevelLoad >= dieAtTime)
-        {
             Collide();
-        }
     }
 
     public void Collide()
@@ -39,14 +39,14 @@ public class LaserProjectile : MonoBehaviour, IProjectile, IPoolable
         onReturnToPool?.Invoke();
     }
 
-    public void Fire(Transform owner, float damage, bool isPlayer = false)
+    public void Fire(Transform owner, float damage, bool isPlayer = false, bool isJuiced = false)
     {
         trail.Clear();
         this.owner = owner;
         this.damage = damage;
         dieAtTime = Time.timeSinceLevelLoad + lifetime;
         body.velocity = transform.up * speed;
-        Color color = isPlayer ? playerColor : enemyColor;
+        Color color = isPlayer ? isJuiced ? juicedColor : playerColor : enemyColor;
         spriteRenderer.color = color;
         trail.startColor = color;
         trail.endColor = color;

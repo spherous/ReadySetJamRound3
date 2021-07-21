@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 public class PowerupPooler : Pooler<Powerup>
@@ -14,5 +15,12 @@ public class PowerupPooler : Pooler<Powerup>
         PowerupReturn powerupReturn = powerup.gameObject.AddComponent<PowerupReturn>();
         powerupReturn.pool = pool;
         return powerup;
+    }
+
+    [Button]
+    public void SpawnPowerup()
+    {
+        Powerup system = pool.Get();
+        system.transform.position = Vector3.zero;
     }
 }

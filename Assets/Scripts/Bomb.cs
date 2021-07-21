@@ -39,15 +39,20 @@ public class Bomb : MonoBehaviour, IProjectile, IPoolable
         {
             if(target.gameObject == gameObject || target.transform == owner)
                 continue;
-            
+
             if(target.TryGetComponent<IHealth>(out IHealth health))
+            {
+                if(health is Rock rock)
+                    rock.surpressSmallerRocks = true;
+                    
                 health.TakeDamage(damage, owner);
+            }
         }
 
         onReturnToPool?.Invoke();
     }
 
-    public void Fire(Transform owner, float damage, bool isPlayer = false)
+    public void Fire(Transform owner, float damage, bool isPlayer = false, bool isJuiced = false)
     {
         this.owner = owner;
         dieAtTime = Time.timeSinceLevelLoad + lifetime;

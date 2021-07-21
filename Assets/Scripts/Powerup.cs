@@ -19,6 +19,14 @@ public class Powerup : MonoBehaviour, IPoolable
             player.CollectPowerup(type);
             onReturnToPool?.Invoke();
         }
+        else if(other.TryGetComponent<PickupRadius>(out PickupRadius pickupRadius))
+        {
+            if(pickupRadius.player.SpendCharge(2))
+            {
+                pickupRadius.player.CollectPowerup(type);
+                onReturnToPool?.Invoke();
+            }
+        }
         else if(other.TryGetComponent<Rock>(out Rock rock))
         {
             if(rock.size >= 2)

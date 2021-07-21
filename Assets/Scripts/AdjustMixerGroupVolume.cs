@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Audio;
 
 public class AdjustMixerGroupVolume : MonoBehaviour
@@ -8,6 +6,11 @@ public class AdjustMixerGroupVolume : MonoBehaviour
     [SerializeField] private AudioMixer mixer;
     [SerializeField] private string mixerGroupName;
 
-    public void SetVolume(float silderVal) => 
+    private void Awake() => SetVolume(PlayerPrefs.GetFloat("Volume", 1));
+
+    public void SetVolume(float silderVal) 
+    {
+        PlayerPrefs.SetFloat("Volume", silderVal);
         mixer.SetFloat(mixerGroupName, Mathf.Log10(silderVal) * 20);
+    }
 }

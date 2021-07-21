@@ -9,8 +9,10 @@ using static UnityEngine.InputSystem.InputAction;
 public class Player : MonoBehaviour, IHealth
 {
     [SerializeField] private Camera cam;
+    [SerializeField] private PauseMenu pauseMenu;
     [SerializeField] private LaserPooler laserPooler;
     [SerializeField] private BombPooler bombPooler;
+    [SerializeField] private RocketPooler rocketPooler;
     [SerializeField] private GameObject endGamePanel;
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private ParticleSystemPooler sparksPooler;
@@ -50,6 +52,7 @@ public class Player : MonoBehaviour, IHealth
     public float primaryFireSpeed;
     float nextPrimaryFireTime;
     public List<Transform> primaryFirePoints = new List<Transform>();
+    public List<Transform> rocketFirePoints = new List<Transform>();
     int lastFirePointIndex;
 
     bool secondaryFire;
@@ -93,6 +96,7 @@ public class Player : MonoBehaviour, IHealth
     public delegate void OnLosePowerup(PowerupType lost);
     public OnLosePowerup onLosePowerup;
 
+
     private void Start()
     {
         currentFuel = maxFuel;
@@ -113,6 +117,8 @@ public class Player : MonoBehaviour, IHealth
                 flashing = false;
         }
 
+
+        // Track power up timers, remove them when their time is up
         List<PowerupType> typesToRemove = new List<PowerupType>();
 
         foreach(KeyValuePair<PowerupType, float> activePowerup in activePowerups)
@@ -127,13 +133,6 @@ public class Player : MonoBehaviour, IHealth
 
         foreach(PowerupType typeToRemove in typesToRemove)
             activePowerups.Remove(typeToRemove);
-
-        // if(activePowerup != PowerupType.None && Time.timeSinceLevelLoad >= powerupFallOffAtTime)
-        // {
-        //     powerupSource.PlayOneShot(losePowerupClip);
-        //     activePowerup = PowerupType.None;
-        //     onLosePowerup?.Invoke();
-        // }
     }
 
     private void FixedUpdate()
@@ -168,6 +167,9 @@ public class Player : MonoBehaviour, IHealth
 
     private void Move()
     {
+        if(pauseMenu.paused)
+            return;
+
         float scaledFuelEfficiency = fuelEfficiency * (activePowerups.ContainsKey(PowerupType.Movespeed) ? 1.5f : 1f);
         if(currentFuel < speed * scaledFuelEfficiency)
         {
@@ -197,7 +199,7 @@ public class Player : MonoBehaviour, IHealth
 
         Vector2 dir = new Vector2();
 
-        float scaledMaxSpeed = maxSpeed * (activePowerups.ContainsKey(PowerupType.Movespeed) ? 2f : 1f);
+        float scaledMaxSpeed = maxSpeed * (activePowerups.ContainsKey(PowerupType.Movespeed) ? 1.66f : 1f);
 
         if(movementInput.magnitude == 0 && speed > 0)
         {
@@ -238,65 +240,103 @@ public class Player : MonoBehaviour, IHealth
 
     public void PrimaryFireInput(CallbackContext context)
     {
+        if(pauseMenu.paused)
+            return;
+            
         if(isDead || isDying)
             return;
-
-        if(context.canceled)
+        if(context.performed)
+            PrimaryFire();
+        else if(context.canceled)
             primaryFire = false;
         else if(context.started)
             primaryFire = true;
     }
     private void PrimaryFire()
     {
-        nextPrimaryFireTime = Time.timeSinceLevelLoad + primaryFireSpeed * (activePowerups.ContainsKey(PowerupType.AttackSpeed) ? 0.25f : 1f);
+        nextPrimaryFireTime = Time.timeSinceLevelLoad + primaryFireSpeed * (activePowerups.ContainsKey(PowerupType.AttackSpeed) ? 0.125f : 1f);
 
         if(currentCharge == 0)
             return;        
-
-        float damageMod = activePowerups.ContainsKey(PowerupType.AttackDamage) ? 3f : 1f;
-        float chargeMod = activePowerups.ContainsKey(PowerupType.AttackDamage) ? 2f : 1f;
+        bool isJuiced = activePowerups.ContainsKey(PowerupType.AttackDamage);
+        float damageMod = isJuiced ? 3f : 1f;
+        float chargeMod = isJuiced ? 2f : 1f;
         
         Vector3 mouseWorldPos = cam.ScreenToWorldPoint((Vector3)Mouse.current.position.ReadValue() + Vector3.forward * 10, MonoOrStereoscopicEye.Mono);
         laserSource.Play();
         
         if(activePowerups.ContainsKey(PowerupType.TwinShot))
         {
-            if(!SpendCharge(2 * chargeMod))
-                return;
+            if(activePowerups.ContainsKey(PowerupType.Rockets))
+            {
+                if(!SpendCharge(6 * chargeMod))
+                    return;
+                Rocket rocket1 = rocketPooler.pool.Get();
+                Rocket rocket2 = rocketPooler.pool.Get();
+                Transform rocket1Pos = rocketFirePoints[0];
+                Transform rocket2Pos = rocketFirePoints[1];
+                rocket1.transform.SetPositionAndRotation(rocket1Pos.position, transform.rotation);
+                rocket2.transform.SetPositionAndRotation(rocket2Pos.position, transform.rotation);
+                rocket1.Fire(transform, 3 * damageMod, true, isJuiced);
+                rocket2.Fire(transform, 3 * damageMod, true, isJuiced);
+            }
+            else
+            {
+                if(!SpendCharge(2 * chargeMod))
+                    return;
 
-            LaserProjectile laser1 = laserPooler.pool.Get();
-            LaserProjectile laser2 = laserPooler.pool.Get();
-            Transform laser1Pos = primaryFirePoints[0];
-            Transform laser2Pos = primaryFirePoints[1];
-            laser1.transform.SetPositionAndRotation(
-                position: laser1Pos.position,
-                rotation: Quaternion.LookRotation(transform.forward, (mouseWorldPos - laser1Pos.transform.position).normalized)
-            );
-            laser2.transform.SetPositionAndRotation(
-                position: laser2Pos.position,
-                rotation: Quaternion.LookRotation(transform.forward, (mouseWorldPos - laser2Pos.transform.position).normalized)
-            );
-            laser1.Fire(transform, damageMod, true);
-            laser2.Fire(transform, damageMod, true);
-            
+                LaserProjectile laser1 = laserPooler.pool.Get();
+                LaserProjectile laser2 = laserPooler.pool.Get();
+                Transform laser1Pos = primaryFirePoints[0];
+                Transform laser2Pos = primaryFirePoints[1];
+                laser1.transform.SetPositionAndRotation(
+                    position: laser1Pos.position,
+                    rotation: Quaternion.LookRotation(transform.forward, (mouseWorldPos - laser1Pos.transform.position).normalized)
+                );
+                laser2.transform.SetPositionAndRotation(
+                    position: laser2Pos.position,
+                    rotation: Quaternion.LookRotation(transform.forward, (mouseWorldPos - laser2Pos.transform.position).normalized)
+                );
+                laser1.Fire(transform, damageMod, true, isJuiced);
+                laser2.Fire(transform, damageMod, true, isJuiced);
+            }
         }
         else
         {
-            if(!SpendCharge(chargeMod))
-                return;
+            if(activePowerups.ContainsKey(PowerupType.Rockets))
+            {
+                if(!SpendCharge(3 * chargeMod))
+                    return;
                 
-            int firePointIndex = lastFirePointIndex + 1 > primaryFirePoints.Count - 1 ? 0 : lastFirePointIndex + 1;
-            Transform firePoint = primaryFirePoints[firePointIndex];
-            lastFirePointIndex = firePointIndex;
-            
-            LaserProjectile proj = laserPooler.pool.Get();
-            proj.transform.SetPositionAndRotation(firePoint.position, Quaternion.LookRotation(transform.forward, (mouseWorldPos - firePoint.transform.position).normalized));
-            proj.Fire(transform, damageMod, true);
+                int firePointIndex = lastFirePointIndex + 1 > rocketFirePoints.Count - 1 ? 0: lastFirePointIndex + 1;
+                Transform firePoint = rocketFirePoints[firePointIndex];
+                lastFirePointIndex = firePointIndex;
+
+                Rocket rocket = rocketPooler.pool.Get();
+                rocket.transform.SetPositionAndRotation(firePoint.position, transform.rotation);
+                rocket.Fire(transform, 3 * damageMod, true, isJuiced);
+            }
+            else
+            {
+                if(!SpendCharge(chargeMod))
+                    return;
+                    
+                int firePointIndex = lastFirePointIndex + 1 > primaryFirePoints.Count - 1 ? 0 : lastFirePointIndex + 1;
+                Transform firePoint = primaryFirePoints[firePointIndex];
+                lastFirePointIndex = firePointIndex;
+                
+                LaserProjectile proj = laserPooler.pool.Get();
+                proj.transform.SetPositionAndRotation(firePoint.position, Quaternion.LookRotation(transform.forward, (mouseWorldPos - firePoint.transform.position).normalized));
+                proj.Fire(transform, damageMod, true, isJuiced);
+            }
         }
     }
 
     public void SecondaryFireInput(CallbackContext context)
     {
+        if(pauseMenu.paused)
+            return;
+
         if(isDead || isDying || !context.performed)
             return;
 
@@ -448,6 +488,9 @@ public class Player : MonoBehaviour, IHealth
 
     public void ActivatePowerup(CallbackContext context)
     {
+        if(pauseMenu.paused)
+            return;
+            
         if(!context.performed || mostRecentlyPickedUpPowerup == PowerupType.None)
             return;
 

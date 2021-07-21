@@ -40,12 +40,25 @@ Powerups
     X Move speed
     X Fuel/energy pick up radius
     X laser damage
+    X Rockets
     Fuel Efficiency - change color of engine plume
-    Rockets
 
-Movespeed boost should increase the size of engine plume
-Change color of lasers while affected by attack damage boost
-pickup radius indicator while buff active
+X Change color of lasers while affected by attack damage boost
+X pickup radius indicator while buff active
+X rockets shouldn't explode off screen, just return to Pool
+X reduce speed from speed powerup
+X one click = one shot, then fall into shooting at a rate while heald
+X Volume should save cross new retry
+X Fusion bomb should fully clear asteroids
+X More HP
+X Make energy/fuel bars/powerup icons bigger/clearer/Move HP bar
+X Pause
+Lives - maybe gain one every 400/500 points?
+Indicate score up. Could be a ++ above enemy or and FX, or both
+More blue on energy cells - make more distinct from fuel
+
+Enemy variety/better AI
+Semi-formal level system
 
 X Highscore
 
@@ -67,9 +80,9 @@ Art
     X Fuel
     X Battery
     X Bomb explosion radius indicator
+    X Energy + fuel icons for the bars
     Screen wrap FX
     Turning air jets (RCS Thrusters)
-    Energy + fuel icons for the bars
 
 Audio
     X Volume controls

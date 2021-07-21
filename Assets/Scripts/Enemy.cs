@@ -54,6 +54,8 @@ public class Enemy : MonoBehaviour, IHealth, IPoolable
     public float damage;
     public float chanceToDropPowerup;
 
+    PauseMenu pauseMenu;
+
     private void Awake() 
     {
         player = GameObject.FindObjectOfType<Player>();
@@ -63,12 +65,16 @@ public class Enemy : MonoBehaviour, IHealth, IPoolable
         powerupSpawner = GameObject.FindObjectOfType<PowerupSpawner>();
         energyPooler = GameObject.FindObjectOfType<EnergyCellPooler>();
         fuelPooler = GameObject.FindObjectOfType<FuelPooler>();
+        pauseMenu = GameObject.FindObjectOfType<PauseMenu>();
         // sparksPooler = GameObject.FindObjectOfType<ParticleSystemPooler>();
         score = GameObject.FindObjectOfType<Score>();
     }
     private void Start() => currentHealth = maxHealth;
 
     private void Update() {
+        if(pauseMenu.paused)
+            return;
+
         Vector3 playerPositionInLocalSpace = player.transform.position - transform.position;
         List<RaycastHit2D> results = new List<RaycastHit2D>();
         int amountHit = col.Cast(playerPositionInLocalSpace, colliderCastFilter, results, playerPositionInLocalSpace.magnitude);
@@ -153,6 +159,11 @@ public class Enemy : MonoBehaviour, IHealth, IPoolable
         PooledParticleSystem explosion = explosionPooler.pool.Get();
         explosion.transform.position = transform.position;
         explosion.transform.localScale = transform.localScale;
+        for(int i = 0; i < explosion.transform.childCount; i++)
+        {
+            Transform child = explosion.transform.GetChild(i);
+            child.localScale = transform.localScale;
+        }
         explosion.Play();
 
         // Enemies drop fuel on death
@@ -177,7 +188,7 @@ public class Enemy : MonoBehaviour, IHealth, IPoolable
             position: transform.position + new Vector3(UnityEngine.Random.Range(0.2f, 0.8f), UnityEngine.Random.Range(0.2f, 0.8f), 0),
             rotation: Quaternion.Euler(0, 0, UnityEngine.Random.Range(-180f, 180f))
         );
-        cell.chargeAmount = 15;
+        cell.chargeAmount = 20;
         cell.body.velocity = ((Vector2)transform.up + new Vector2(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(-1f, 1f))).normalized * UnityEngine.Random.Range(0f, 1f);
         cell.body.angularVelocity = UnityEngine.Random.Range(-90f, 90f);
         

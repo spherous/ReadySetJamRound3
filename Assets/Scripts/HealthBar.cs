@@ -11,6 +11,7 @@ public class HealthBar : MonoBehaviour
     public IHealth healthToMonitor {get; private set;}
     public Vector2 offset;
 
+    public bool surpressFollow;
 
     private void Awake() {
         cam = Camera.main;
@@ -42,8 +43,11 @@ public class HealthBar : MonoBehaviour
     {
         if(objectToMonitor == null || healthToMonitor == null)
             return;
-
-        Vector3 screenPos = cam.WorldToScreenPoint(objectToMonitor.transform.position);
-        ((RectTransform)transform).position = screenPos + (Vector3)offset;
+        
+        if(!surpressFollow)
+        {
+            Vector3 screenPos = cam.WorldToScreenPoint(objectToMonitor.transform.position);
+            ((RectTransform)transform).position = screenPos + (Vector3)offset;
+        }
     }
 }
